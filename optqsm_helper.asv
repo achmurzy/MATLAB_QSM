@@ -1,7 +1,0 @@
-%Script for executing optqsm for our own purposes 
-%Namely, fitting models when TreeQSM messes up with local minima
-
-cd("LiDAR/optqsm_in_out/mod
-%Run it with four workers because this should optimize the number of cores
-%our local machine here has. 
-runqsm("LiDAR/optqsm_in_out/cloud/*.txt", 4)

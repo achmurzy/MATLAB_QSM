@@ -27,6 +27,12 @@ inputs.PatchDiam2Max = [0.06 0.08]; % Maximum cover set size in the stem's base 
 inputs.lcyl = [3 5]; % Relative (length/radius) length of the cylinders
 inputs.FilRad = 3; % Relative radius for outlier point filtering
 
+inputs.PatchDiam1 = [0.5 0.55]; % Patch size of the first uniform-size cover
+inputs.PatchDiam2Min = [0.025 0.035]; % Minimum patch size of the cover sets in the second cover
+inputs.PatchDiam2Max = [0.075 0.085]; % Maximum cover set size in the stem's base in the second cover
+inputs.lcyl = [3 4]; % Relative (length/radius) length of the cylinders
+inputs.FilRad = 5; % Relative radius for outlier point filtering
+
 % The following parameters can be varied and but usually can be kept as
 % shown (i.e. little bigger than PatchDiam parameters):
 inputs.BallRad1 = inputs.PatchDiam1+0.02; % Ball radius in the first uniform-size cover generation

@@ -1,11 +1,14 @@
 %Convert a set of PCD files into an ASCII format to satisfy the demands
 %of optqsm. Optionally, provide a file specifying a set of names. 
 %Otherwise, convert the whole LiDAR directory
+
 function [] = convert_to_ASCII(names)
 if ~exist('names', 'var')
    files = dir('LiDAR/*.pcd');
 else
-    names = importdata('included.txt')
+    %We were hoping that optqsm could fit our 'excluded' trees, but
+    %it turns out to be outrageously computationally intensive
+    names = importdata('optqsm_included.txt')
     files = strcat(strcat("LiDAR/", names), ".pcd")
 end
 

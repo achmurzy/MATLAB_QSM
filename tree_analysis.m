@@ -1,16 +1,17 @@
 
 %TreeQSM analysis
-function [] = tree_analysis(wildcard_path, save_plot, save_txt)
+function [] = tree_analysis(wildcard_path, triangulate, save_plot, save_txt, overwrite)
     files = dir(wildcard_path);
     finished_names = dir("results/OptimalQSMs_*.mat");
     finished_names = {finished_names.name};
     create_input
+   
     inputs.plot = save_plot;
     inputs.savetxt = save_txt;
-    inputs.Tria = 0;
+    inputs.Tria = triangulate;
     for file = files'
         %Check if this cloud has already been processed
-        if(~ismember(['OptimalQSMs_', file.name, '.mat'], finished_names))
+        if((~ismember(['OptimalQSMs_', file.name, '.mat'], finished_names) | overwrite) & contains(file.name, ".pcd"))
             disp(strcat("Fitting new set of QSMs...", file.name));
             cloud = pcread(file.name);
             inputs.name = file.name;
