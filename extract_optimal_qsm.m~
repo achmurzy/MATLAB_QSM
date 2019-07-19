@@ -1,6 +1,6 @@
 function qsm = extract_optimal_qsm(view_qsm, skip_existing)
     optimal_names = dir("results/OptimalQSMs_*.mat");
-    analysis_path = "~/Documents/MATLAB/asymmetric-branching/data/";
+    analysis_path = "../asymmetric-branching/data/";
     finished_names = dir(strjoin([analysis_path, "results/cyl_data_*.txt"], ""));
     for file = optimal_names'
        opt_qsm = load(file.name);
@@ -22,7 +22,7 @@ function qsm = extract_optimal_qsm(view_qsm, skip_existing)
        elseif view_qsm
            view_cylinder_model(file.name);
        end
-       disp(str)
+       disp("Printing Optimal QSM to text file
        save_model_text2(opt_qsm.OptQSM,str,analysis_path); 
     end
         
