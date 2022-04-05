@@ -1,3 +1,5 @@
+05-Crescentia_alata
+06-Crescentia_alata
 12_sans_feuilles
 70_sans_feuilles
 2_sans_feuilles
@@ -21,11 +23,13 @@ No09
 No10
 No13
 Pinus11
+Pinus12
 Tectona1_gray_1
 Tectona3_gray_1
 strom_2
 strom_10
 strom_12
+strom_13
 strom_17
 73_sans_feuilles
 2-16-5
@@ -43,4 +47,6 @@ Tectona4_gray_1
 strom_4
 S5
 wytham_winter_10
+wytham_winter_70
 wytham_winter_446
+wytham_winter_195

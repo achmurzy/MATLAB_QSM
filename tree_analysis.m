@@ -1,4 +1,3 @@
-
 %TreeQSM analysis
 function [] = tree_analysis(wildcard_path, triangulate, save_plot, save_txt, overwrite)
     files = dir(wildcard_path);
@@ -28,17 +27,14 @@ function [] = tree_analysis(wildcard_path, triangulate, save_plot, save_txt, ove
                 %Downsample the pointcloud - we are hoping our clouds are all
                 %given at meter-scale. Downsampling too much will lead to a
                 %sparse cloud with its own problems related to local minima
-                %Usually, downsampling just gives awa informatio,
-                %especially when we're on high-performance computing
+
                 %result = cubical_averaging(cloud.Location, 0.001);
-                %cloud.Location = cubical_down_sampling(cloud.Location, 0.01);
                 result = cloud.Location;
                 
                 %Main processing step. Generates 5-10 QSMS for optimization
                 trees = treeqsm(result, inputs);
 
                 %optimization routine made obsolete by optqsm
-                %still, optqsm may be too much mustard
                 opt = select_optimum(trees, [file.name, '.mat']);
             else
                 disp(strcat("Poorly formed input, not processing: ", file.name));

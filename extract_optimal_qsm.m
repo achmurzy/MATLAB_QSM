@@ -1,6 +1,8 @@
+%Use the .pcd extension in the wildcard for optimal QSMs to distinguish
+%from alberta trees. A little hacky but ok for now
 function qsm = extract_optimal_qsm(view_qsm, skip_existing)
-    optimal_names = dir("results/OptimalQSMs_*.mat");
-    analysis_path = "~/Documents/MATLAB/asymmetric-branching/data/";
+    optimal_names = dir("results/OptimalQSMs_*.pcd.mat");
+    analysis_path = "~/Documents/asymmetric-branching/data/";
     finished_names = dir(strjoin([analysis_path, "results/cyl_data_*.txt"], ""));
     for file = optimal_names'
        opt_qsm = load(file.name);
