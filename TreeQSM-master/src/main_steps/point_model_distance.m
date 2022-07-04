@@ -19,11 +19,20 @@ function pmdistance = point_model_distance(P,cylinder)
 % POINT_MODEL_DISTANCE.M    Computes the distances of the points to the 
 %                               cylinder model
 %
-% Version 2.00
-% Latest update     16 Aug 2017
+% Version 2.1.1
+% Latest update     8 Oct 2021
 %
-% Copyright (C) 2015-2017 Pasi Raumonen
+% Copyright (C) 2015-2021 Pasi Raumonen
 % ---------------------------------------------------------------------
+
+% Changes from version 2.1.0 to 2.1.1, 8 Oct 2021:  
+% 1) Changed the determinationa NE, the number of empty edge layers, so 
+%     that is now limited in size, before it is given as input for 
+%     cubical_partition function.
+
+% Changes from version 2.0.0 to 2.1.0, 26 Nov 2019:  
+% 1) Bug fix: Corrected the computation of the output at the end of the
+%    code so that trees without branches are computed correctly.
 
 % Cylinder data
 Rad = cylinder.radius;
@@ -40,7 +49,7 @@ P = P(I,:);
 
 % Partition the points into cubes 
 L = 2*median(Len);
-NE = max(3,ceil(max(Len)/L))+3;
+NE = max(3,min(10,ceil(max(Len)/L)))+3;
 [Partition,~,Info] = cubical_partition(P,L,NE);
 Min = Info(1:3);
 EL = Info(7);
@@ -74,80 +83,81 @@ Dist(:,1) = 2; % Large distance initially
 Points = zeros(ceil(np/10),1,'int32'); % Auxiliary variable
 Data = cell(n,1);
 for i = 1:n
-    Par = Partition(CC(i,1)-N(i):CC(i,1)+N(i),CC(i,2)-N(i):CC(i,2)+N(i),CC(i,3)-N(i):CC(i,3)+N(i));
-    if N(i) > 1
-        S = cellfun('length',Par);
-        I = S > 0;
-        S = S(I);
-        Par = Par(I);
-        stop = cumsum(S);
-        start = [0; stop]+1;
-        for k = 1:length(stop)
-            Points(start(k):stop(k)) = Par{k}(:);
-        end
-        points = Points(1:stop(k));
-    else
-        points = vertcat(Par{:});
+  Par = Partition(CC(i,1)-N(i):CC(i,1)+N(i),CC(i,2)-N(i):CC(i,2)+N(i),...
+    CC(i,3)-N(i):CC(i,3)+N(i));
+  if N(i) > 1
+    S = cellfun('length',Par);
+    I = S > 0;
+    S = S(I);
+    Par = Par(I);
+    stop = cumsum(S);
+    start = [0; stop]+1;
+    for k = 1:length(stop)
+      Points(start(k):stop(k)) = Par{k}(:);
     end
-    [d,~,h] = distances_to_line(P(points,:),Axe(i,:),Sta(i,:));
-    d = abs(d-Rad(i));
-    Data{i} = [d h double(points)];
-    I = d < Dist(points,1);
-    J = h >= 0;
-    K = h <= Len(i);
-    L = d < 0.5;
-    M = I&J&K&L;
-    points = points(M);
-    Dist(points,1) = d(M);
-    Dist(points,2) = i;
+    points = Points(1:stop(k));
+  else
+    points = vertcat(Par{:});
+  end
+  [d,~,h] = distances_to_line(P(points,:),Axe(i,:),Sta(i,:));
+  d = abs(d-Rad(i));
+  Data{i} = [d h double(points)];
+  I = d < Dist(points,1);
+  J = h >= 0;
+  K = h <= Len(i);
+  L = d < 0.5;
+  M = I&J&K&L;
+  points = points(M);
+  Dist(points,1) = d(M);
+  Dist(points,2) = i;
 end
 
 % Calculate the distances to the cylinders for points not yet calculated
 % because they are not "on side of cylinder
 for i = 1:n
-    if ~isempty(Data{i})
-        d = Data{i}(:,1);
-        h = Data{i}(:,2);
-        points = Data{i}(:,3);
-        I = d < Dist(points,1);
-        J = h >= -0.1 & h <= 0;
-        K = h <= Len(i)+0.1 & h >= Len(i);
-        L = d < 0.5;
-        M = I&(J|K)&L;
-        points = points(M);
-        Dist(points,1) = d(M);
-        Dist(points,2) = i;
-    end
+  if ~isempty(Data{i})
+    d = Data{i}(:,1);
+    h = Data{i}(:,2);
+    points = Data{i}(:,3);
+    I = d < Dist(points,1);
+    J = h >= -0.1 & h <= 0;
+    K = h <= Len(i)+0.1 & h >= Len(i);
+    L = d < 0.5;
+    M = I&(J|K)&L;
+    points = points(M);
+    Dist(points,1) = d(M);
+    Dist(points,2) = i;
+  end
 end
 
-% Select only the shortest 95% of distances for each cylinder 
+% Select only the shortest 95% of distances for each cylinder
 N = zeros(n,1);
 O = zeros(np,1);
 for i = 1:np
-    if Dist(i,2) > 0
-        N(Dist(i,2)) = N(Dist(i,2))+1;
-        O(i) = N(Dist(i,2));
-    end
+  if Dist(i,2) > 0
+    N(Dist(i,2)) = N(Dist(i,2))+1;
+    O(i) = N(Dist(i,2));
+  end
 end
 Cyl = cell(n,1);
 for i = 1:n
-    Cyl{i} = zeros(N(i),1);
+  Cyl{i} = zeros(N(i),1);
 end
 for i = 1:np
-    if Dist(i,2) > 0
-        Cyl{Dist(i,2)}(O(i)) = i;
-    end
+  if Dist(i,2) > 0
+    Cyl{Dist(i,2)}(O(i)) = i;
+  end
 end
 DistCyl = zeros(n,1); % Average point distance to each cylinder
 for i = 1:n
-    I = Cyl{i};
-    m = length(I);
-    if m > 19 % select the smallest 95% of distances
-        d = sort(Dist(I,1));
-        DistCyl(i) = mean(d(1:floor(0.95*m)));
-    elseif m > 0
-        DistCyl(i) = mean(Dist(I,1));
-    end
+  I = Cyl{i};
+  m = length(I);
+  if m > 19 % select the smallest 95% of distances
+    d = sort(Dist(I,1));
+    DistCyl(i) = mean(d(1:floor(0.95*m)));
+  elseif m > 0
+    DistCyl(i) = mean(Dist(I,1));
+  end
 end
 
 % Define the output
@@ -157,18 +167,9 @@ pmdistance.mean = mean(DistCyl(:,1));
 pmdistance.max = max(DistCyl(:,1));
 pmdistance.std = std(DistCyl(:,1));
 
-T = false(n,1);
-B1 = T;
-B2 = T;
-for i = 1:n
-    if BOrd(i) == 0
-        T(i) = true;
-    elseif BOrd(i) == 1
-        B1(i) = true;
-    elseif BOrd(i) == 2
-        B2(i) = true;
-    end
-end
+T = BOrd == 0;
+B1 = BOrd == 1;
+B2 = BOrd == 2;
 B = DistCyl(~T,1);
 T = DistCyl(T,1);
 B1 = DistCyl(B1,1);
@@ -179,17 +180,38 @@ pmdistance.TrunkMean = mean(T);
 pmdistance.TrunkMax = max(T);
 pmdistance.TrunkStd = std(T);
 
-pmdistance.BranchMedian = median(B);
-pmdistance.BranchMean = mean(B);
-pmdistance.BranchMax = max(B);
-pmdistance.BranchStd = std(B);
+if ~isempty(B)
+  pmdistance.BranchMedian = median(B);
+  pmdistance.BranchMean = mean(B);
+  pmdistance.BranchMax = max(B);
+  pmdistance.BranchStd = std(B);
+else
+  pmdistance.BranchMedian = 0;
+  pmdistance.BranchMean = 0;
+  pmdistance.BranchMax = 0;
+  pmdistance.BranchStd = 0;
+end
 
-pmdistance.Branch1Median = median(B1);
-pmdistance.Branch1Mean = mean(B1);
-pmdistance.Branch1Max = max(B1);
-pmdistance.Branch1Std = std(B1);
+if ~isempty(B1)
+  pmdistance.Branch1Median = median(B1);
+  pmdistance.Branch1Mean = mean(B1);
+  pmdistance.Branch1Max = max(B1);
+  pmdistance.Branch1Std = std(B1);
+else
+  pmdistance.Branch1Median = 0;
+  pmdistance.Branch1Mean = 0;
+  pmdistance.Branch1Max = 0;
+  pmdistance.Branch1Std = 0;
+end
 
-pmdistance.Branch2Median = median(B2);
-pmdistance.Branch2Mean = mean(B2);
-pmdistance.Branch2Max = max(B2);
-pmdistance.Branch2Std = std(B2);
+if ~isempty(B2)
+  pmdistance.Branch2Median = median(B2);
+  pmdistance.Branch2Mean = mean(B2);
+  pmdistance.Branch2Max = max(B2);
+  pmdistance.Branch2Std = std(B2);
+else
+  pmdistance.Branch2Median = 0;
+  pmdistance.Branch2Mean = 0;
+  pmdistance.Branch2Max = 0;
+  pmdistance.Branch2Std = 0;
+end

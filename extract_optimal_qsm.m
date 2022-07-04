@@ -1,8 +1,8 @@
 %Use the .pcd extension in the wildcard for optimal QSMs to distinguish
 %from alberta trees. A little hacky but ok for now
-function qsm = extract_optimal_qsm(view_qsm, skip_existing)
+function qsm = extract_optimal_qsm(analysis_path, view_qsm)
     optimal_names = dir("results/OptimalQSMs_*.pcd.mat");
-    analysis_path = "~/Documents/asymmetric-branching/data/";
+
     finished_names = dir(strjoin([analysis_path, "results/cyl_data_*.txt"], ""));
     for file = optimal_names'
        opt_qsm = load(file.name);
@@ -12,19 +12,11 @@ function qsm = extract_optimal_qsm(view_qsm, skip_existing)
        str = [str,'_D',num2str(inputs.PatchDiam1)];
        str = [str,'_DA',num2str(inputs.PatchDiam2Max)];
        str = [str,'_DI',num2str(inputs.PatchDiam2Min)];
-       str = [str,'_L',num2str(inputs.lcyl)];
-       str = [str,'_F',num2str(inputs.FilRad)];
-       
-       if skip_existing
-           check_member = strjoin(["cyl_data_", str, ".txt"], "");
-           if(ismember(check_member, {finished_names.name}))
-              disp(["Skipping extraction for present QSM: ", check_member]); 
-              continue;
-           end
-       elseif view_qsm
+   
+       if view_qsm
            view_cylinder_model(file.name);
        end
-       disp(str)
-       save_model_text2(opt_qsm.OptQSM,str,analysis_path); 
+       
+       save_model_text(opt_qsm.OptQSM,inputs.name,analysis_path); 
     end
         
